@@ -1,0 +1,57 @@
+[{
+        "id": 1,
+        "nombre": "Jabón lavaloza",
+        "precio": 9400,
+        "stock": 30,
+        "categoria": "Cocina"
+    },
+    {
+        "id": 2,
+        "nombre": "Desengrasante",
+        "precio": 10600,
+        "stock": 20,
+        "categoria": "Cocina"
+    },
+    {
+        "id": 3,
+        "nombre": "Desinfectante de pisos",
+        "precio": 7500,
+        "stock": 25,
+        "categoria": "Pisos"
+    },
+    {
+        "id": 4,
+        "nombre": "Ambientador",
+        "precio": 7500,
+        "stock": 18,
+        "categoria": "Aromatización"
+    },
+    {
+        "id": 5,
+        "nombre": "Limpiavidrios",
+        "precio": 7500,
+        "stock": 22,
+        "categoria": "Superficies"
+    },
+    {
+        "id": 6,
+        "nombre": "Blanqueador",
+        "precio": 5100,
+        "stock": 35,
+        "categoria": "Desinfección"
+    },
+    {
+        "id": 7,
+        "nombre": "Jabón multiusos",
+        "precio": 9400,
+        "stock": 28,
+        "categoria": "Limpieza general"
+    },
+    {
+        "id": 8,
+        "nombre": "Cera para pisos",
+        "precio": 20900,
+        "stock": 15,
+        "categoria": "Pisos"
+    }
+]

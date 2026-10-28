@@ -1,217 +1,242 @@
-// Clase Producto
 
-class Producto {
+import {
+    mostrarCategorias,
+    mostrarProductos,
+    mostrarMensaje,
+    mostrarEstadoCarga,
+    formatearPrecio
+} from "./ui.js";
 
-    constructor(id, nombre, precio, stock) {
-        this.id = id;
-        this.nombre = nombre;
-        this.precio = precio;
-        this.stock = stock;
-    }
-
-    mostrarPrecio() {
-        return `$${this.precio.toLocaleString("es-CO")}`;
-    }
-}
-
-
-// Array de productos
-
-let productos = [
-    new Producto(1, "Detergente", 12000, 20),
-    new Producto(2, "Desinfectante", 15000, 15),
-    new Producto(3, "Limpiavidrios", 10000, 10)
-];
+import {
+    obtenerCarrito,
+    agregarProducto,
+    cambiarCantidad,
+    eliminarProducto,
+    vaciarCarrito,
+    calcularSubtotal,
+    mostrarCarrito
+} from "./carrito.js";
 
 
-// Selección de elementos del DOM
-
-const formulario = document.querySelector("#formulario-producto");
-
-const inputNombre = document.querySelector("#nombre");
-
-const inputPrecio = document.querySelector("#precio");
-
-const inputStock = document.querySelector("#stock");
-
-const contenedorProductos = document.querySelector("#contenedor-productos");
+/*ELEMENTOS DEL HTML*/
 
 const buscador = document.querySelector("#buscador");
+const filtroCategoria = document.querySelector("#filtro-categoria");
+const contenedorCarrito = document.querySelector("#contenedor-carrito");
+const botonVaciar = document.querySelector("#btn-vaciar-carrito");
+const botonConfirmar = document.querySelector("#btn-confirmar-pedido");
+const resultadoPedido = document.querySelector("#resultado-pedido");
+const detallePedido = document.querySelector("#detalle-pedido");
 
-const mensaje = document.querySelector("#mensaje");
+
+/*DATOS DE LA APLICACIÓN*/
+
+let productos = [];
 
 
-// Función para mostrar mensajes
+/*NOTIFICACIONES*/
 
-function mostrarMensaje(texto, tipo) {
-
-    mensaje.innerHTML = `
-        <div class="${tipo}">
-            ${texto}
-        </div>
-    `;
-
-    setTimeout(() => {
-        mensaje.innerHTML = "";
-    }, 3000);
+function notificar(texto) {
+    if (typeof window.Toastify === "function") {
+        window.Toastify({
+            text: texto,
+            duration: 3000,
+            gravity: "top",
+            position: "right",
+            close: true,
+            stopOnFocus: true
+        }).showToast();
+    } else {
+        mostrarMensaje(texto);
+    }
 }
 
 
-// Función para renderizar productos
+/*CARGAR PRODUCTOS DESDE JSON*/
 
-function renderizarProductos(listaProductos) {
+async function cargarProductos() {
+    mostrarEstadoCarga("Cargando productos...");
 
-    contenedorProductos.innerHTML = "";
+    try {
+        const respuesta = await fetch("./data.json");
 
-    if (listaProductos.length === 0) {
+        if (!respuesta.ok) {
+            throw new Error("No se pudo cargar el catálogo.");
+        }
 
-        contenedorProductos.innerHTML = `
-            <div class="sin-productos">
-                <p>No se encontraron productos.</p>
-            </div>
-        `;
+        const datos = await respuesta.json();
 
-        return;
+        if (!Array.isArray(datos)) {
+            throw new Error("El catálogo tiene un formato incorrecto.");
+        }
+
+        productos = datos;
+
+        mostrarCategorias(productos);
+        aplicarFiltros();
+        mostrarCarrito();
+
+    } catch (error) {
+        mostrarEstadoCarga(
+            "No pudimos cargar los productos. Abre el proyecto con Live Server e inténtalo de nuevo."
+        );
+
+        mostrarMensaje(error.message);
+    } finally {
+        const estadoCarga = document.querySelector("#estado-carga");
+
+        if (productos.length > 0) {
+            estadoCarga.textContent = `Catálogo cargado: ${productos.length} productos.`;
+        }
     }
+}
 
 
-    listaProductos.forEach((producto) => {
+/*BUSCAR Y FILTRAR PRODUCTOS*/
 
-        contenedorProductos.innerHTML += `
-            <div class="producto">
+function aplicarFiltros() {
+    const textoBusqueda = buscador.value.trim().toLowerCase();
+    const categoriaSeleccionada = filtroCategoria.value;
 
-                <h3>${producto.nombre}</h3>
+    const productosFiltrados = productos.filter((producto) => {
+        const coincideNombre = producto.nombre
+            .toLowerCase()
+            .includes(textoBusqueda);
 
-                <p>
-                    <strong>Precio:</strong>
-                    ${producto.mostrarPrecio()}
-                </p>
+        const coincideCategoria =
+            categoriaSeleccionada === "todas" ||
+            producto.categoria === categoriaSeleccionada;
 
-                <p>
-                    <strong>Stock:</strong>
-                    ${producto.stock}
-                </p>
-
-                <button
-                    class="btn-eliminar"
-                    data-id="${producto.id}"
-                >
-                    Eliminar
-                </button>
-
-            </div>
-        `;
+        return coincideNombre && coincideCategoria;
     });
+
+    mostrarProductos(productosFiltrados, agregarAlCarrito);
 }
 
 
-// Mostrar productos al cargar la página
+/*AGREGAR AL CARRITO*/
 
-renderizarProductos(productos);
+function agregarAlCarrito(id) {
+    const producto = productos.find((item) => item.id === id);
 
-
-// Evento del formulario
-
-formulario.addEventListener("submit", (evento) => {
-
-    evento.preventDefault();
-
-
-    const nombre = inputNombre.value.trim();
-
-    const precio = Number(inputPrecio.value);
-
-    const stock = Number(inputStock.value);
-
-
-    if (nombre === "" || precio <= 0 || stock < 0) {
-
-        mostrarMensaje(
-            "Por favor, completa todos los campos correctamente.",
-            "mensaje-error"
-        );
-
+    if (!producto) {
+        notificar("No encontramos ese producto.");
         return;
     }
 
-
-    const nuevoId = productos.length > 0
-        ? Math.max(...productos.map(producto => producto.id)) + 1
-        : 1;
-
-
-    const nuevoProducto = new Producto(
-        nuevoId,
-        nombre,
-        precio,
-        stock
-    );
+    agregarProducto(producto, notificar);
+    actualizarInterfaz();
+}
 
 
-    productos.push(nuevoProducto);
+/*INTERACCIONES DEL CARRITO*/
 
+contenedorCarrito.addEventListener("click", (evento) => {
+    const boton = evento.target.closest("button[data-accion]");
 
-    renderizarProductos(productos);
-
-
-    mostrarMensaje(
-        `El producto "${nombre}" fue agregado correctamente.`,
-        "mensaje-exito"
-    );
-
-
-    formulario.reset();
-});
-
-
-// Evento para eliminar productos
-
-contenedorProductos.addEventListener("click", (evento) => {
-
-    if (evento.target.classList.contains("btn-eliminar")) {
-
-        const idProducto = Number(
-            evento.target.dataset.id
-        );
-
-
-        const producto = productos.find(
-            producto => producto.id === idProducto
-        );
-
-
-        productos = productos.filter(
-            producto => producto.id !== idProducto
-        );
-
-
-        renderizarProductos(productos);
-
-
-        mostrarMensaje(
-            `El producto "${producto.nombre}" fue eliminado.`,
-            "mensaje-exito"
-        );
+    if (!boton) {
+        return;
     }
+
+    const id = Number(boton.dataset.id);
+    const accion = boton.dataset.accion;
+
+    if (accion === "aumentar") {
+        cambiarCantidad(id, 1, notificar);
+    } else if (accion === "disminuir") {
+        cambiarCantidad(id, -1, notificar);
+    } else if (accion === "eliminar") {
+        eliminarProducto(id);
+        notificar("Producto eliminado del carrito.");
+    }
+
+    actualizarInterfaz();
 });
 
 
-// Evento de teclado para buscar productos
+/*ACTUALIZAR LA INTERFAZ*/
 
-buscador.addEventListener("input", () => {
+function actualizarInterfaz() {
+    aplicarFiltros();
+    mostrarCarrito();
+}
 
-    const textoBuscado = buscador.value
-        .toLowerCase()
-        .trim();
+
+/*VACIAR CARRITO*/
+
+botonVaciar.addEventListener("click", () => {
+    if (obtenerCarrito().length === 0) {
+        notificar("El carrito ya está vacío.");
+        return;
+    }
+
+    vaciarCarrito();
+    actualizarInterfaz();
+    notificar("Has vaciado el carrito.");
+});
 
 
-    const productosFiltrados = productos.filter(
-        producto =>
-            producto.nombre
-                .toLowerCase()
-                .includes(textoBuscado)
+/*CONFIRMAR PEDIDO*/
+
+botonConfirmar.addEventListener("click", () => {
+    const carrito = obtenerCarrito();
+
+    if (carrito.length === 0) {
+        notificar("Agrega al menos un producto antes de confirmar.");
+        return;
+    }
+
+    const productosPedido = carrito.map(
+        ({ nombre, precio, cantidad }) => ({
+            nombre,
+            precio,
+            cantidad,
+            total: precio * cantidad
+        })
     );
 
+    const totalPedido = calcularSubtotal();
 
-    renderizarProductos(productosFiltrados);
+    detallePedido.innerHTML = "";
+
+    productosPedido.forEach(({ nombre, cantidad, total }) => {
+        const fila = document.createElement("p");
+
+        fila.classList.add("detalle-pedido-item");
+
+        fila.textContent =
+            `${nombre} × ${cantidad}: ${formatearPrecio(total)}`;
+
+        detallePedido.appendChild(fila);
+    });
+
+    const total = document.createElement("p");
+
+    total.classList.add("total-pedido");
+    total.textContent = `Total del pedido: ${formatearPrecio(totalPedido)}`;
+
+    detallePedido.appendChild(total);
+
+    resultadoPedido.hidden = false;
+
+    vaciarCarrito();
+    actualizarInterfaz();
+
+    resultadoPedido.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+    });
+
+    notificar("¡Pedido confirmado! Esta es una simulación, no un cobro real.");
 });
+
+
+/*EVENTOS DEL BUSCADOR Y FILTRO*/
+
+buscador.addEventListener("input", aplicarFiltros);
+filtroCategoria.addEventListener("change", aplicarFiltros);
+
+
+/*INICIAR APLICACIÓN*/
+
+cargarProductos();

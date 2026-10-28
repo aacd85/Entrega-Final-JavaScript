@@ -5,129 +5,149 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Silcar Clean - Productos de limpieza</title>
+    <meta name="description" content="Silcar Clean: catálogo y simulador de compra de productos de limpieza.">
 
-    <!-- CSS -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet">
+
+    <title>Silcar Clean | Soluciones de limpieza</title>
+
+    <!-- Estilos propios -->
     <link rel="stylesheet" href="./CSS/style.css">
 
-    <!-- JavaScript -->
-    <script src="./JS/main.js" defer></script>
+    <!-- Estilos de Toastify -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+
+    <!-- Librería Toastify -->
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js" defer></script>
+
+    <!-- Aplicación JavaScript -->
+    <script type="module" src="./JS/main.js"></script>
 </head>
 
 <body>
 
     <!-- Encabezado -->
-<header>
+    <header class="encabezado">
 
-    <img 
-        src="./Logo azul.png" 
-        alt="Logo Silcar Clean" 
-        class="logo"
-    >
+        <img src="./assets/Logo SILCAR de limpieza con brillo de color.png" alt="Logo de Silcar Clean" class="logo">
 
-    <div class="titulo-header">
-        <h1>Silcar Clean</h1>
-        <p>Gestión de productos de limpieza</p>
-    </div>
+        <div class="titulo-header">
+            <h1>SILCAR</h1>
+            <p>Soluciones de Limpieza</p>
+        </div>
 
-</header>
-
+    </header>
 
     <main>
 
-        <!-- Formulario para agregar productos -->
-        <section class="formulario">
+        <!-- Presentación -->
+        <section class="presentacion">
+            <h2>Bienvenido a Silcar Clean</h2>
+            <p>
+                Encuentra tus productos de limpieza, agrégalos al carrito y prepara tu pedido fácilmente.
+            </p>
+        </section>
 
-            <h2>Agregar producto</h2>
+        <!-- Catálogo de productos -->
+        <section class="productos" aria-labelledby="titulo-catalogo">
 
-            <form id="formulario-producto">
-
-                <div class="campo">
-
-                    <label for="nombre">
-                        Nombre del producto
-                    </label>
-
-                    <input
-                        type="text"
-                        id="nombre"
-                        placeholder="Ej: Detergente"
-                        required
-                    >
-
+            <div class="encabezado-productos">
+                <div>
+                    <h2 id="titulo-catalogo">Nuestro catálogo</h2>
+                    <p>Selecciona los productos que necesitas.</p>
                 </div>
 
+                <input type="search" id="buscador" placeholder="Buscar producto..." aria-label="Buscar productos por nombre">
+            </div>
 
-                <div class="campo">
+            <!-- Filtro por categoría -->
+            <div class="filtros">
+                <label for="filtro-categoria">Categoría:</label>
 
-                    <label for="precio">
-                        Precio
-                    </label>
+                <select id="filtro-categoria">
+                    <option value="todas">Todas las categorías</option>
+                </select>
+            </div>
 
-                    <input
-                        type="number"
-                        id="precio"
-                        placeholder="Ej: 12000"
-                        min="1"
-                        required
-                    >
+            <!-- Estado de carga y mensajes -->
+            <p id="estado-carga" role="status" aria-live="polite">
+                Cargando productos...
+            </p>
 
-                </div>
+            <div id="mensaje" role="status" aria-live="polite"></div>
 
-
-                <div class="campo">
-
-                    <label for="stock">
-                        Stock
-                    </label>
-
-                    <input
-                        type="number"
-                        id="stock"
-                        placeholder="Ej: 20"
-                        min="0"
-                        required
-                    >
-
-                </div>
-
-
-                <button type="submit">
-                    + Agregar producto
-                </button>
-
-            </form>
+            <!-- JavaScript renderiza aquí los productos -->
+            <div id="contenedor-productos" class="contenedor-productos"></div>
 
         </section>
 
+        <!-- Carrito de compras -->
+        <section class="carrito" aria-labelledby="titulo-carrito">
 
-        <!-- Lista de productos -->
-        <section class="productos">
+            <div class="encabezado-carrito">
+                <div>
+                    <h2 id="titulo-carrito">Mi carrito</h2>
+                    <p>Revisa y modifica tu pedido.</p>
+                </div>
 
-            <div class="encabezado-productos">
+                <span id="cantidad-carrito" aria-live="polite">
+                    0 productos
+                </span>
+            </div>
 
-                <h2>Productos disponibles</h2>
+            <!-- JavaScript renderiza aquí los productos del carrito -->
+            <div id="contenedor-carrito"></div>
 
-                <!-- Buscador -->
-                <input
-                    type="text"
-                    id="buscador"
-                    placeholder="Buscar producto..."
-                >
+            <!-- Resumen de compra -->
+            <div class="resumen-carrito">
+
+                <p>
+                    <span>Subtotal</span>
+                    <strong id="subtotal">$0</strong>
+                </p>
+
+                <p>
+                    <span>Total</span>
+                    <strong id="total-carrito">$0</strong>
+                </p>
 
             </div>
 
+            <!-- Acciones del carrito -->
+            <div class="acciones-carrito">
 
-            <!-- Mensajes de feedback -->
-            <div id="mensaje"></div>
+                <button type="button" id="btn-vaciar-carrito" class="btn-secundario">
+                    Vaciar carrito
+                </button>
 
+                <button type="button" id="btn-confirmar-pedido" class="btn-principal" disabled>
+                    Confirmar pedido
+                </button>
 
-            <!-- Aquí JavaScript renderiza los productos -->
-            <div id="contenedor-productos"></div>
+            </div>
+
+            <p class="nota-carrito">
+                Simulador académico: el pedido no genera un cobro real.
+            </p>
 
         </section>
 
+        <!-- Resultado de la compra -->
+        <section id="resultado-pedido" class="resultado-pedido" aria-live="polite" hidden>
+            <h2>Resumen del pedido</h2>
+            <div id="detalle-pedido"></div>
+        </section>
+
     </main>
+
+    <!-- Pie de página -->
+    <footer class="pie-pagina">
+        <p>
+            &copy; 2026 Silcar Clean. Simulador de compras de productos de limpieza.
+        </p>
+    </footer>
 
 </body>
 
